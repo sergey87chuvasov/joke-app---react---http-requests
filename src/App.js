@@ -22,6 +22,7 @@ function App() {
 
   const [jokes, setJokes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // get
   // function fetchJokesHandler(params) {
@@ -37,13 +38,41 @@ function App() {
   // async // await
   async function fetchJokesHandler(params) {
     setIsLoading(true);
-    const response = await fetch(
-      'https://official-joke-api.appspot.com/random_ten'
-    );
-    const data = await response.json();
-    setJokes(data);
+    setError(null);
 
+    // catch mistake
+    try {
+      const response = await fetch(
+        'https://official-joke-api.appspot.com/random_ten'
+      );
+
+      // or true or false - if false
+      if (!response.ok) {
+        throw new Error('something going wrong');
+      }
+
+      const data = await response.json();
+
+      setJokes(data);
+    } catch (e) {
+      // get our message  - 'something going wrong'
+      setError(e.message);
+    }
     setIsLoading(false);
+  }
+
+  let content = <p>Шуток не найдено...</p>;
+
+  if (jokes.length > 0) {
+    content = <JokeList jokes={jokes} />;
+  }
+
+  if (error) {
+    content = <p>{error}</p>;
+  }
+
+  if (isLoading) {
+    content = <p>Загрузка шуток...</p>;
   }
 
   return (
@@ -52,9 +81,13 @@ function App() {
         <button onClick={fetchJokesHandler}>Fetch Jokes</button>
       </section>
       <section>
-        {!isLoading && jokes.length > 0 && <JokeList jokes={jokes} />}
-        {!isLoading && jokes.length === 0 && <p>Шуток не найдено...</p>}
+        {content}
+        {/* {!isLoading && jokes.length > 0 && <JokeList jokes={jokes} />}
+        {!isLoading && jokes.length === 0 && !error && (
+          <p>Шуток не найдено...</p>
+        )}
         {isLoading && <p>Загрузка шуток...</p>}
+        {!isLoading && error && <p>{error}</p>} */}
       </section>
     </React.Fragment>
   );
